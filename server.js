@@ -43,26 +43,37 @@ app.delete('/beers/:beerId', function(req, res, next) {
   Beer.findByIdAndRemove(req.params.beerId, handler(res,next));
 });
 
-app.post('/beers/:id/ratings', function(req, res, next) {
+app.post('/beers/:beerId/ratings', function(req, res, next) {
     var updateObject = { $push: { ratings: req.body.rating } };
-    Beer.findByIdAndUpdate(req.param.id, updateObject, { new: true }, handler(res,next));
+    Beer.findByIdAndUpdate(req.params.beerId, updateObject, { new: true }, handler(res,next));
 });
 
-app.post('/beers/:beerId', function (req, res, next) {
-    Beer.update({_id: req.params.beerId}, {$set: {'name': req.body.name, 'style': req.body.style, 'image_url':req.body.image_url, 'abv': req.body.abv}}, handler(res,next));
-})
+app.put('/beers/:beerId', function(req, res, next) {
+  Beer.findByIdAndUpdate(req.params.beerId, req.body, { new: true }, function(err, beer) {
+    if (err) {
+      return next(err);
+    }
+    res.send(beer);
+  });
+});
 
-// // 4) to handle adding a comment to a post
-// app.post('/beersDB/:beerId/comments', function(req, res) {
-//   var update = { $push: { comments: req.body } };
-//   Post.findByIdAndUpdate(req.params.postId, update, { new: true }, handler(res));
-// });
+app.post('/beers/:beerId/reviews', function(req, res, next) {
+  var beerId = req.params.beerId;
+  var review = {
+    user: req.body.user,
+    review: req.body.review
+  }
+  Beer.findById(beerId, function (error, result){
+    if(error) { return console.error(error); }
+    result.reviews.push(review);
+    result.save(function(err,data){
+      if(error) { return console.log(error); }
+    res.send(data);
+    });
+  })
+});
 
-// // 5) to handle deleting a comment from a post
-// app.delete('/beersDB/:beerId/comments/:commentId', function(req, res) {
-//   var update = { $pull: { comments: { _id: req.params.commentId } } };
-//   Post.findByIdAndUpdate(req.params.postId, update, { new: true }, handler(res));
-// });
+
 
 
 
